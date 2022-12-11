@@ -7,18 +7,34 @@ jobs:
     env:
       result_file: result.log
     runs-on: ubuntu-latest
-
     steps:
+
     - name: Send time start jobs
+      id: time
       run: |
-        echo "Start deployment:  $(date '+%F %T')" >> ${{ env.result_file }}
+        echo "Start timer:  $(date '+%F %T')" >> ${{ env.result_file }}
+        echo "::set-output name=start_timer::$(date '+%s')"
 
     - name: Waiter
       run: sleep 3
 
     - name: Send time finish jobs
       run: |
-        echo "Finish deployment: $(date '+%F %T')" >> ${{ env.result_file }}
+        echo "Stop timer: $(date '+%F %T')" >> ${{ env.result_file }}
+        echo "Time spended: $(($(date '+%s')-${{ steps.time.outputs.start_timer }})) seconds" >> ${{env.result_file}}
+
+
+
+#    - name: Send time start jobs
+#      run: |
+#        echo "Start deployment:  $(date '+%F %T')" >> ${{ env.result_file }}
+#
+#    - name: Waiter
+#      run: sleep 3
+#
+#    - name: Send time finish jobs
+#      run: |
+#        echo "Finish deployment: $(date '+%F %T')" >> ${{ env.result_file }}
 
 #    - name: Simple timer inside Action
 #      run: |
