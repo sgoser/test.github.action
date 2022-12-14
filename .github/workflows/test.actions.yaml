@@ -13,7 +13,7 @@ jobs:
       id: time
       run: |
         echo "Start timer:  $(date '+%F %T')" >> ${{ env.result_file }}
-        echo "::set-output name=start_timer::$(date '+%s')"
+        echo "start_timer=$(date '+%s')" >> $GITHUB_OUTPUT
 
     - name: Waiter
       run: sleep 3
@@ -47,6 +47,32 @@ jobs:
         sed -i '1 i\Repository: ${{ github.repository }}' ${{ env.result_file }}
         sed -i '2 i\Workflow: ${{ github.workflow }}' ${{ env.result_file }}
 
+    - name: Send GitHub trigger payload to Slack Workflow Builder
+      id: slack
+      uses: slackapi/slack-github-action@v1.23.0
+      env:
+        SLACK_BOT_TOKEN: ${{ secrets.SLACK_TOKEN }}
+      with:
+        channel-id: 'C04EWNX7BT3'
+        payload: |
+          {
+            "text": "TEXT in there",
+            "attachments": [
+              {
+                "pretext": "",
+                "color": "ff0000",
+                "fields": [
+                  {
+                    "title": "this is TITLE",
+                    "short": true,
+                    "value": "This is value\nSee the ${{ env.result_file }} for details."
+                  }
+                ]
+              }
+            ]
+          }
+
+
     - name: Upload to slack step
       uses: adrey/slack-file-upload-action@master
       with:
@@ -54,14 +80,14 @@ jobs:
         path: ${{ env.result_file }}
         channel: github_action
 
-    - name: Send telegram message on push
-      uses: appleboy/telegram-action@master
-      with:
-        to: ${{ secrets.TELEGRAM_TO }}
-        token: ${{ secrets.TELEGRAM_TOKEN }}
-        message: |
-          ${{ github.actor }} created commit:
-          Commit message: ${{ github.event.commits[0].message }}
-          Repository: ${{ github.repository }}
-          See changes: https://github.com/${{ github.repository }}/commit/${{github.sha}}
-        document: ${{ env.result_file}}
+#    - name: Send telegram message on push
+#      uses: appleboy/telegram-action@master
+#      with:
+#        to: ${{ secrets.TELEGRAM_TO }}
+#        token: ${{ secrets.TELEGRAM_TOKEN }}
+#        message: |
+#          ${{ github.actor }} created commit:
+#          Commit message: ${{ github.event.commits[0].message }}
+#          Repository: ${{ github.repository }}
+#          See changes: https://github.com/${{ github.repository }}/commit/${{github.sha}}
+#        document: ${{ env.result_file}}
