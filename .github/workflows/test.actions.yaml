@@ -3,10 +3,11 @@ name: Github Actions Test
 on: push
 
 jobs:
-  test1:
+  simple_timer:
     env:
       result_file: result.log
-    runs-on: ubuntu-latest
+    #runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
 
     - name: Send time start jobs
@@ -23,32 +24,12 @@ jobs:
         echo "Stop timer: $(date '+%F %T')" >> ${{ env.result_file }}
         echo "Time spended: $(($(date '+%s')-${{ steps.time.outputs.start_timer }})) seconds" >> ${{env.result_file}}
 
-
-
-#    - name: Send time start jobs
-#      run: |
-#        echo "Start deployment:  $(date '+%F %T')" >> ${{ env.result_file }}
-#
-#    - name: Waiter
-#      run: sleep 3
-#
-#    - name: Send time finish jobs
-#      run: |
-#        echo "Finish deployment: $(date '+%F %T')" >> ${{ env.result_file }}
-
-#    - name: Simple timer inside Action
-#      run: |
-#        SECONDS=0
-#        sleep 3
-#        echo "Elapsed Time: $SECONDS seconds" >> ${{ env.result_file }}
-
     - name: Additional information in log file
       run: |
         sed -i '1 i\Repository: ${{ github.repository }}' ${{ env.result_file }}
         sed -i '2 i\Workflow: ${{ github.workflow }}' ${{ env.result_file }}
 
-    - name: Send GitHub trigger payload to Slack Workflow Builder
-      id: slack
+    - name: Send to Slack
       uses: slackapi/slack-github-action@v1.23.0
       env:
         SLACK_BOT_TOKEN: ${{ secrets.SLACK_TOKEN }}
@@ -56,11 +37,11 @@ jobs:
         channel-id: 'C04EWNX7BT3'
         payload: |
           {
-            "text": "TEXT in there",
+            "text": "Gihtub Action report",
             "attachments": [
               {
                 "pretext": "",
-                "color": "ff0000",
+                "color": "00aa00",
                 "fields": [
                   {
                     "title": "this is TITLE",
@@ -79,15 +60,3 @@ jobs:
         token: ${{ secrets.SLACK_TOKEN }}
         path: ${{ env.result_file }}
         channel: github_action
-
-#    - name: Send telegram message on push
-#      uses: appleboy/telegram-action@master
-#      with:
-#        to: ${{ secrets.TELEGRAM_TO }}
-#        token: ${{ secrets.TELEGRAM_TOKEN }}
-#        message: |
-#          ${{ github.actor }} created commit:
-#          Commit message: ${{ github.event.commits[0].message }}
-#          Repository: ${{ github.repository }}
-#          See changes: https://github.com/${{ github.repository }}/commit/${{github.sha}}
-#        document: ${{ env.result_file}}
